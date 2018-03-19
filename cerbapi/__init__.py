@@ -4,7 +4,7 @@ from email.utils import formatdate
 from urllib.request import Request, urlopen
 from urllib.parse import urlencode, urlparse
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 
 class CerbException(Exception):
@@ -32,9 +32,7 @@ class Cerb(object):
         r = Request(url, data=data.encode(), method=verb)
 
         date = formatdate()
-        print(r.full_url)
-        print('\n'.join([
-                verb, date, urlparse(url).path, query, data, self.secret, '']))
+
         r.headers = {
             'Date': date,
             'Content-Length': len(data),
