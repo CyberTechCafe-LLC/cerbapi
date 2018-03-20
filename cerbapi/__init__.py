@@ -4,7 +4,7 @@ from email.utils import formatdate
 from urllib.request import Request, urlopen
 from urllib.parse import urlencode, urlparse
 
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 
 class CerbException(Exception):
@@ -64,10 +64,10 @@ class Cerb(object):
     ##############################
 
     def link(self, on: str, targets: list):
-        return self.send('POST', 'contexts/link', payload={'on': on, 'targets': json.dumps(targets)})
+        return self.send('POST', 'contexts/link', payload=(('on', on), ('targets', json.dumps(targets))))
 
     def unlink(self, on: str, targets: list):
-        return self.send('POST', 'contexts/unlink', payload={'on': on, 'targets': json.dumps(targets)})
+        return self.send('POST', 'contexts/unlink', payload=(('on', on), ('targets', json.dumps(targets))))
 
     def get_contexts(self):
         return self.send('GET', 'contexts/list')
@@ -76,20 +76,22 @@ class Cerb(object):
         return self.send('GET', 'contexts/activity/events')
 
     def create_activity_event(self, on: str, activity_point: str, variables: list=None, urls: list=None):
-        return self.send('POST', 'contexts/activity/create', payload={
-            'on': on,
-            'activity_point': activity_point,
-            'variables': json.dumps(variables or []),
-            'urls': json.dumps(urls or [])
-        })
+        return self.send('POST', 'contexts/activity/create', payload=(
+            ('activity_point', activity_point),
+            ('on', on),
+            ('urls', json.dumps(urls or [])),
+            ('variables', json.dumps(variables or [])),
+        ))
 
     ##############################
     # Package Module
     ##############################
 
     def import_package(self, package_json: dict or list, prompts: dict=None):
-        payload = {'prompts[{}]'.format(k): prompts[k] for k in prompts}
-        payload['package_json'] = json.dumps(package_json)
+        payload = [('package_json', json.dumps(package_json))]
+
+        for k in sorted(prompts or {}):
+            payload.append(('prompts[{}]'.format(k), prompts[k]))
 
         return self.send('POST', 'packages/import', payload=payload)
 
@@ -98,59 +100,54 @@ class Cerb(object):
     ##############################
 
     def parse_new_message(self, from_address: str, to_address: str, subject: str, message='No Content'):
-        return self.send('POST', 'parser/parse', payload={
-            'message': '\n'.join([
+        return self.send('POST', 'parser/parse', payload=(
+            'message', '\n'.join([
                 'From: ' + from_address,
                 'To: ' + to_address,
                 'Subject: ' + subject,
                 '',
                 message,
-            ])
-        })
+            ])))
 
     def parse_reply(self, from_address: str, to_address: str, ticket_mask: str, message='No Content'):
-        return self.send('POST', 'parser/parse', payload={
-            'message': '\n'.join([
+        return self.send('POST', 'parser/parse', payload=(
+            'message', '\n'.join([
                 'From: ' + from_address,
                 'To: ' + to_address,
                 'Subject: [parser #' + ticket_mask + '] Reply',
                 '',
                 message,
-            ])
-        })
+            ])))
 
     ##############################
     # Records Module
     ##############################
 
     def get_record(self, uri, id, expand: list=None):
-        return self.send('GET', 'records/{}/{}'.format(uri, id), params={'expand': ','.join(expand or [])})
+        return self.send('GET', 'records/{}/{}'.format(uri, id), params=('expand', ','.join(expand or [])))
 
     def create_record(self, uri, expand: list=None, fields: dict=None):
         return self.send('POST', 'records/{}/create'.format(uri),
-                         params={'expand': ','.join(expand or [])},
-                         payload={'fields[{}]'.format(f): fields[f] for f in (fields or {})}
+                         params=('expand', ','.join(expand or [])),
+                         payload=[('fields[{}]'.format(f), fields[f]) for f in sorted(fields or {})]
                          )
 
     def update_record(self, uri, id, expand: list=None, fields: dict=None):
         return self.send('PUT', 'records/{}/{}'.format(uri, id),
-                         params={'expand': ','.join(expand or [])},
-                         payload={'fields[{}]'.format(f): fields[f] for f in (fields or {})}
+                         params=('expand', ','.join(expand or [])),
+                         payload=[('fields[{}]'.format(f), fields[f]) for f in sorted(fields or {})]
                          )
 
     def upsert_record(self, uri, query: str, expand: list=None, fields: dict=None):
         return self.send('PATCH', 'records/{}/upsert'.format(uri),
-                         params=(('expand', ','.join(expand or [])), ('query', query or '')),
-                         payload={'fields[{}]'.format(f): fields[f] for f in (fields or {})}
+                         params=(('expand', ','.join(expand or [])), ('query', query)),
+                         payload=[('fields[{}]'.format(f), fields[f]) for f in sorted(fields or {})]
                          )
 
     def delete_record(self, uri, id):
         return self.send('DELETE', 'records/{}/{}'.format(uri, id))
 
-    def search_records(self, uri, query: str=None, expand: list=None, limit: int=None, page: int=None):
+    def search_records(self, uri, query: str='', expand: list=None, limit: int=100, page: int=0):
         return self.send('GET', 'records/{}/search'.format(uri), params=(
-            ('expand', ','.join(expand or [])),
-            ('limit', limit or 100),
-            ('page', page or ''),
-            ('q', query or '')
+            ('expand', ','.join(expand or [])), ('limit', limit), ('page', page), ('q', query)
         ))

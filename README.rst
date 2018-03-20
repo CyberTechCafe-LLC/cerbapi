@@ -23,8 +23,8 @@ In your python project import and create a Cerb instance
     from cerbapi import Cerb
 
     cerb = Cerb(
-            access_key='accesskeyex',
-            secret='DontStoreThisInCodePythonLikeThis',
+            access_key='myaccesskey',
+            secret='IdeallyDontStoreThisInYourCodeLikeThis',
             base='https://example.com/index.php/base/'
             )
 
