@@ -124,17 +124,17 @@ class Cerb(object):
     ##############################
 
     def get_record(self, uri, id, expand: list=None):
-        return self.send('GET', 'records/{}/{}'.format(uri, id), params=('expand', ','.join(expand or [])))
+        return self.send('GET', 'records/{}/{}'.format(uri, id), params=(('expand', ','.join(expand or [])),))
 
     def create_record(self, uri, expand: list=None, fields: dict=None):
         return self.send('POST', 'records/{}/create'.format(uri),
-                         params=('expand', ','.join(expand or [])),
+                         params=(('expand', ','.join(expand or [])),),
                          payload=[('fields[{}]'.format(f), fields[f]) for f in sorted(fields or {})]
                          )
 
     def update_record(self, uri, id, expand: list=None, fields: dict=None):
         return self.send('PUT', 'records/{}/{}'.format(uri, id),
-                         params=('expand', ','.join(expand or [])),
+                         params=(('expand', ','.join(expand or [])),),
                          payload=[('fields[{}]'.format(f), fields[f]) for f in sorted(fields or {})]
                          )
 
