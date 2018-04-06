@@ -4,7 +4,7 @@ from email.utils import formatdate
 from urllib.request import Request, urlopen
 from urllib.parse import urlencode, urlparse
 
-__version__ = '1.0.5'
+__version__ = '1.0.6'
 
 
 class CerbException(Exception):
@@ -14,18 +14,18 @@ class CerbException(Exception):
 class Cerb(object):
 
     def __init__(self, access_key, secret, base='https://localhost/index.php/rest/'):
-        self.access = access_key
-        self.secret = md5(secret.encode()).hexdigest()
-        self.base = base
+        self._access_key = access_key
+        self._secret = md5(secret.encode()).hexdigest()
+        self._base = base
 
         # Test the connection and set values for version and build
-        test = self.send('GET', 'contexts/list')
+        test = self.get_contexts()
         self._version = test['__version']
         self._build = test['__build']
 
     def send(self, verb, endpoint, payload=None, params=None):
         query = urlencode(params or {})
-        url = self.base + endpoint + '.json' + ('?' + query if query else '')
+        url = self._base + endpoint + '.json' + ('?' + query if query else '')
 
         data = urlencode(payload or {})
 
@@ -37,8 +37,8 @@ class Cerb(object):
             'Date': date,
             'Content-Length': len(data),
             'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-            'Cerb-Auth': self.access + ':' + md5('\n'.join([
-                verb, date, urlparse(url).path, query, data, self.secret, '']).encode()).hexdigest()
+            'Cerb-Auth': self._access_key + ':' + md5('\n'.join([
+                verb, date, urlparse(url).path, query, data, self._secret, '']).encode()).hexdigest()
         }
 
         with urlopen(r) as f:
@@ -50,6 +50,14 @@ class Cerb(object):
                     raise CerbException(response['message'])
 
             return response
+
+    @property
+    def access_key(self):
+        return self._access_key
+
+    @property
+    def base(self):
+        return self._base
 
     @property
     def version(self):
