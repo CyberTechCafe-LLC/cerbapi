@@ -56,6 +56,8 @@ def print_records_module(cerb: Cerb):
     print("""
 from cerbapi import Cerb, CerbException
 from collections import OrderedDict
+import json
+
 
 class Record:
     _id = None
@@ -149,7 +151,6 @@ class Record:
 
     def __repr__(self):
         return json.dumps(self._backbone, indent=4)
-
 """)
 
     json.dumps({}, indent=4, )
