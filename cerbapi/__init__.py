@@ -4,7 +4,7 @@ from email.utils import formatdate
 from urllib.request import Request, urlopen
 from urllib.parse import urlencode, urlparse
 
-__version__ = '1.0.6'
+__version__ = '1.0.7'
 
 
 class CerbException(Exception):
