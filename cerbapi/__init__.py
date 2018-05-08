@@ -108,24 +108,24 @@ class Cerb(object):
     ##############################
 
     def parse_new_message(self, from_address: str, to_address: str, subject: str, message='No Content'):
-        return self.send('POST', 'parser/parse', payload=(
+        return self.send('POST', 'parser/parse', payload=((
             'message', '\n'.join([
                 'From: ' + from_address,
                 'To: ' + to_address,
                 'Subject: ' + subject,
                 '',
                 message,
-            ])))
+            ])),))
 
     def parse_reply(self, from_address: str, to_address: str, ticket_mask: str, message='No Content'):
-        return self.send('POST', 'parser/parse', payload=(
+        return self.send('POST', 'parser/parse', payload=((
             'message', '\n'.join([
                 'From: ' + from_address,
                 'To: ' + to_address,
                 'Subject: [parser #' + ticket_mask + '] Reply',
                 '',
                 message,
-            ])))
+            ])),))
 
     ##############################
     # Records Module
