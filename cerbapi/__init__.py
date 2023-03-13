@@ -1,4 +1,5 @@
 import json
+import ssl
 from hashlib import md5
 from email.utils import formatdate
 from urllib.request import Request, urlopen
@@ -13,10 +14,11 @@ class CerbException(Exception):
 
 class Cerb(object):
 
-    def __init__(self, access_key, secret, base='https://localhost/index.php/rest/'):
+    def __init__(self, access_key, secret, base='https://localhost/index.php/rest/', secure=True):
         self._access_key = access_key
         self._secret = md5(secret.encode()).hexdigest()
         self._base = base
+        self._secure = secure
 
         # Test the connection and set values for version and build
         test = self.get_contexts()
@@ -41,7 +43,12 @@ class Cerb(object):
                 verb, date, urlparse(url).path, query, data, self._secret, '']).encode()).hexdigest()
         }
 
-        with urlopen(r) as f:
+        context = ssl.create_default_context()
+        if (not self._secure):
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+
+        with urlopen(r, context=context) as f:
 
             response = json.loads(f.read().decode())
 
